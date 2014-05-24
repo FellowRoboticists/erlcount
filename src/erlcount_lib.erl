@@ -1,15 +1,20 @@
 -module(erlcount_lib).
--export([ find_erl/1 ]).
+-export([ find_erl/1, regex_count/2 ]).
 -include_lib("kernel/include/file.hrl").
 
 %% Finds all files ending in .erl
 find_erl(Directory) ->
   find_erl(Directory, queue:new()).
 
+regex_count(Re, Str) ->
+  case re:run(Str, Re, [ global ]) of
+    nomatch -> 0;
+    { match, List } -> length(List)
+  end.
 %%% Private
 
 %% Dispatches based on file type
-find_erl(Directory, Queue) ->
+find_erl(Name, Queue) ->
   { ok, F = #file_info{}} = file:read_file_info(Name),
   case F#file_info.type of
     directory -> handle_directory(Name, Queue);
@@ -47,3 +52,4 @@ handle_regular_file(Name, Queue) ->
     _NonErl ->
       dequeue_and_run(Queue)
   end.
+
